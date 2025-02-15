@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::match(['get','post'],'member/login', [App\Http\Controllers\Member\MemberController::class, 'login']);
+Route::match(['get','post'],'member/login', [App\Http\Controllers\Member\AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('member/register',[App\Http\Controllers\Member\MemberController::class,'register']);
