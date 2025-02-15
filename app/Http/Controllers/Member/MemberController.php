@@ -8,13 +8,52 @@ use Illuminate\Http\Request;
 class MemberController extends Controller
 {
     public function login(Request $request){
-        try{
-            return 111;
-        }catch(Exception $e){
+        $val = Validator::make($request->all(), [
+            'username' => 'required',
+            'password' => 'required',
+        ]);
+        if ($val->fails()) {
+            return response()->json($val->errors(), 202);
+        }
+        $now = date('d-m-Y H:i:s');
+        $stringTime = strtotime($now);
+        $admin = Admin::where('username',$request->username)->first();
+
+        if(isset($admin)!=1)
+        {
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage()
+                'mess' => 'username'
             ]);
         }
+
+        $check =  $admin->makeVisible('password');
+
+
+        if(Hash::check($request->password,$check->password)){
+
+                $success= $admin->createToken('Admin')->accessToken;
+
+                $admin->lastlogin=$stringTime;
+                $admin->save();
+
+                return response()->json([
+                    'status' => true,
+                    'token' => $success,
+                    'username'=>$admin->display_name
+                ]);
+        }else {
+
+            return response()->json([
+                    'status' => false,
+                    'mess' => 'pass'
+            ]);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->token()->revoke();
+        return response()->json(['message' => 'success']);
     }
 }
